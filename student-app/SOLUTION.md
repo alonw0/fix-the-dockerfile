@@ -2,12 +2,12 @@
 
 > Keep this away from students until they've had a real go. 🙂
 
-**Two starter files ship in `student-app/`:**
-- **`Dockerfile`** (default) — harder: bare and broken, minimal comments. Students infer the fixes.
-- **`Dockerfile-hints`** — friendlier: every fix flagged with `❌` + `# TODO`. Fallback for
-  strugglers via `docker build -f Dockerfile-hints -t docker-game .`
+**The lesson ships as three branches:**
+- **`main`** — harder: a bare, broken `Dockerfile`, minimal comments. Students infer the fixes.
+- **`hints`** — friendlier: every fix flagged with `❌` + `# TODO` (`git checkout hints`).
+- **`solution`** (this branch) — the fixed `Dockerfile`, a `.dockerignore`, and this file.
 
-Both need the **same** fixes below.
+`main` and `hints` both need the **same** fixes below.
 
 ## EASY — minimal working Dockerfile
 
