@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>🐳 Docker Game — Live Leaderboard</title>
+    <style>
+      :root {
+        --bg: #0a1626;
+        --bg2: #0d1f3a;
+        --card: #12294a;
+        --accent: #2496ed; /* Docker blue */
+        --accent2: #00d4ff;
+        --gold: #ffd54a;
+        --silver: #cfd8e3;
+        --bronze: #e8935a;
+        --text: #eaf3ff;
+        --muted: #8ba7c7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1200px 600px at 50% -10%, #143c66, transparent),
+          linear-gradient(160deg, var(--bg), var(--bg2));
+        background-color: var(--bg);
+      }
+      header {
+        text-align: center;
+        padding: 28px 16px 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        letter-spacing: 0.5px;
+      }
+      .sub {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      }
+      .live {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: rgba(0, 212, 255, 0.12);
+        border: 1px solid rgba(0, 212, 255, 0.35);
+        font-size: 0.8rem;
+        color: var(--accent2);
+      }
+      .dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: #37e39b; box-shadow: 0 0 10px #37e39b;
+        animation: pulse 1.6s infinite;
+      }
+      @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
+
+      main {
+        max-width: 900px;
+        margin: 16px auto 60px;
+        padding: 0 16px;
+      }
+      .board { display: flex; flex-direction: column; gap: 12px; }
+      .row {
+        display: grid;
+        grid-template-columns: 64px 84px 1fr auto;
+        align-items: center;
+        gap: 16px;
+        background: linear-gradient(180deg, var(--card), #0f2340);
+        border: 1px solid rgba(36, 150, 237, 0.25);
+        border-radius: 16px;
+        padding: 12px 18px;
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+      }
+      .row.top1 { border-color: var(--gold); box-shadow: 0 0 24px rgba(255, 213, 74, 0.25); }
+      .row.top2 { border-color: var(--silver); }
+      .row.top3 { border-color: var(--bronze); }
+      .rank {
+        font-size: 1.8rem;
+        font-weight: 800;
+        text-align: center;
+        color: var(--muted);
+      }
+      .top1 .rank { color: var(--gold); }
+      .top2 .rank { color: var(--silver); }
+      .top3 .rank { color: var(--bronze); }
+      .avatar {
+        width: 84px; height: 84px;
+        border-radius: 14px;
+        object-fit: cover;
+        background: #0a1a30;
+        border: 2px solid rgba(255,255,255,0.08);
+      }
+      .name {
+        font-size: 1.35rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .votes {
+        text-align: right;
+        min-width: 92px;
+      }
+      .votes b { font-size: 1.9rem; color: var(--accent2); }
+      .votes span { display: block; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 60px 20px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+      }
+      footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding-bottom: 30px; }
+      code { background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🐳 Docker Game — Live Leaderboard</h1>
+      <div class="sub">Fix your Dockerfile, join the board, and battle for upvotes.</div>
+      <div class="live"><span class="dot"></span> LIVE · auto-refreshing</div>
+    </header>
+
+    <main>
+      <div id="board" class="board"></div>
+      <div id="empty" class="empty" hidden>
+        No players yet! 🐳<br />
+        Be the first — fix your Dockerfile, run the app, and submit your name + a GIF.
+      </div>
+    </main>
+
+    <footer>Powered by containers and questionable GIF taste.</footer>
+
+    <script>
+      const board = document.getElementById("board");
+      const empty = document.getElementById("empty");
+
+      function medal(i) {
+        return i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "#" + (i + 1);
+      }
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+        );
+      }
+
+      async function refresh() {
+        try {
+          const res = await fetch("/api/entries", { cache: "no-store" });
+          const { entries } = await res.json();
+          render(entries || []);
+        } catch (e) {
+          console.error("refresh failed", e);
+        }
+      }
+
+      function render(entries) {
+        empty.hidden = entries.length > 0;
+        board.innerHTML = entries
+          .map((e, i) => {
+            const topClass = i < 3 ? "top" + (i + 1) : "";
+            const img = e.gifUrl
+              ? `<img class="avatar" src="${escapeHtml(e.gifUrl)}" alt="" onerror="this.style.visibility='hidden'"/>`
+              : `<div class="avatar"></div>`;
+            return `
+              <div class="row ${topClass}">
+                <div class="rank">${medal(i)}</div>
+                ${img}
+                <div class="name">${escapeHtml(e.name)}</div>
+                <div class="votes"><b>${e.votes}</b><span>votes</span></div>
+              </div>`;
+          })
+          .join("");
+      }
+
+      refresh();
+      setInterval(refresh, 3000);
+    </script>
+  </body>
+</html>

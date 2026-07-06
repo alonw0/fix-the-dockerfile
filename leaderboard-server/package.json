@@ -1,0 +1,14 @@
+{
+  "name": "docker-game-leaderboard",
+  "version": "1.0.0",
+  "description": "Shared live leaderboard server for the Docker lesson game. Deploy to Vercel.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.3"
+  }
+}

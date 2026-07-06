@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>🐳 Docker Game</title>
+    <link rel="stylesheet" href="/style.css" />
+    <!-- Loads window.LEADERBOARD_URL, injected by the server from the env var -->
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero">
+        <div class="whale">🐳</div>
+        <h1>You fixed the Dockerfile!</h1>
+        <p class="tagline">Now join the leaderboard. Drop your name + a favourite GIF.</p>
+      </header>
+
+      <section class="card form-card">
+        <form id="join-form">
+          <label>
+            Your name
+            <input id="name" name="name" maxlength="40" placeholder="Ada from container-land" required />
+          </label>
+          <label>
+            GIF URL
+            <input id="gifUrl" name="gifUrl" type="url" placeholder="https://media.giphy.com/....gif" required />
+            <small>Grab one from <a href="https://giphy.com" target="_blank" rel="noreferrer">giphy.com</a> → right-click a GIF → “Copy image address”.</small>
+          </label>
+          <div id="preview-wrap" hidden>
+            <img id="preview" alt="GIF preview" />
+          </div>
+          <button type="submit" id="submit-btn">🚀 Join the board!</button>
+          <p id="status" class="status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="board-head">
+          <h2>Live Leaderboard</h2>
+          <span class="live"><span class="dot"></span> auto-refreshing</span>
+        </div>
+        <div id="board" class="board"></div>
+        <p id="board-empty" class="empty" hidden>No players yet — be the first! 🐳</p>
+      </section>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

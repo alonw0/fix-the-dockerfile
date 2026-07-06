@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+.vercel
+.env
+.env.*
+.DS_Store
+cleanup.mjs
