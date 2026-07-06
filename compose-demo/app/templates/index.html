@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>🐳 Compose Demo — Guestbook</title>
+    <style>
+      :root { --blue:#2496ed; --ink:#0b1b2b; --muted:#5b7089; --card:#fff; --bg:#eef4fb; --line:#d7e3f2; }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family: system-ui, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+      .wrap { max-width: 620px; margin: 0 auto; padding: 32px 18px 60px; }
+      h1 { margin: 0 0 4px; font-size: 1.7rem; }
+      .sub { color: var(--muted); margin: 0 0 18px; }
+      .badges { display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 20px; }
+      .badge { font-size:.8rem; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:5px 12px; }
+      .badge b { color: var(--blue); }
+      .counter { font-size:2.6rem; font-weight:800; color:var(--blue); line-height:1; }
+      .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:18px; }
+      form { display:flex; flex-direction:column; gap:10px; }
+      input, textarea { font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:9px; }
+      textarea { resize:vertical; min-height:56px; }
+      button { font:inherit; font-weight:700; color:#fff; background:var(--blue); border:none; border-radius:9px; padding:11px; cursor:pointer; }
+      button:hover { filter:brightness(1.06); }
+      ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+      li { border-top:1px solid var(--line); padding-top:10px; }
+      li:first-child { border-top:none; padding-top:0; }
+      .who { font-weight:700; }
+      .when { color:var(--muted); font-size:.78rem; }
+      .empty { color:var(--muted); }
+      code { background:var(--bg); padding:1px 6px; border-radius:5px; font-size:.85em; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>🐳 Compose Demo — Guestbook</h1>
+      <p class="sub">The same app, backed by SQLite or Postgres depending on how you run it.</p>
+
+      <div class="badges">
+        <span class="badge">storage: <b>{{ backend }}</b></span>
+        <span class="badge">db: <code>{{ db_display }}</code></span>
+        <span class="badge">container: <code>{{ hostname }}</code></span>
+      </div>
+
+      <div class="card">
+        <div class="counter">{{ visits }}</div>
+        <div class="sub">page views (stored in the database — survives restarts if the volume does)</div>
+      </div>
+
+      <div class="card">
+        <form action="/message" method="post">
+          <input name="name" placeholder="Your name" maxlength="60" />
+          <textarea name="body" placeholder="Leave a message…" maxlength="500" required></textarea>
+          <button type="submit">Sign the guestbook</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <strong>Recent messages</strong>
+        <ul style="margin-top:12px">
+          {% for m in messages %}
+            <li>
+              <div><span class="who">{{ m.name }}</span></div>
+              <div>{{ m.body }}</div>
+              <div class="when">{{ m.created_at.strftime("%Y-%m-%d %H:%M UTC") }}</div>
+            </li>
+          {% else %}
+            <li class="empty">No messages yet — be the first!</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

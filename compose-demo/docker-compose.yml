@@ -1,0 +1,39 @@
+# Two services wired together. `docker compose up` builds the web image,
+# starts Postgres, waits until it's healthy, then runs the app against it.
+#
+# Notice what Compose gives you for free:
+#   • a private network — the app reaches the DB by the name "db"
+#   • a named volume    — Postgres data survives `docker compose down`
+#   • startup ordering  — web waits for db to be healthy
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"          # http://localhost:8000
+    environment:
+      # This one env var flips the app from SQLite to Postgres.
+      DATABASE_URL: postgresql+psycopg://demo:demo@db:5432/guestbook
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: guestbook
+    volumes:
+      # Named volume → host-managed storage. THIS is where the data really lives.
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d guestbook"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+# Declared here, referenced above. `docker volume ls` will show it as
+# "compose-demo_dbdata". `docker compose down -v` deletes it (and your data).
+volumes:
+  dbdata:
